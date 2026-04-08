@@ -28,7 +28,7 @@ export default function Auth() {
     
     try {
       // Send the secure Google JWT token to our PHP backend for verification
-      const response = await axios.post('http://localhost:8000/api/auth/google', {
+      const response = await axios.post('https://bhasha-verify.onrender.com/api/auth/google', {
         token: credentialResponse.credential
       });
       
@@ -58,8 +58,8 @@ export default function Auth() {
     setError('');
 
     const endpoint = isLogin 
-      ? 'http://localhost:8000/api/auth/login' 
-      : 'http://localhost:8000/api/auth/register';
+      ? 'https://bhasha-verify.onrender.com/api/auth/login' 
+      : 'https://bhasha-verify.onrender.com/api/auth/register';
 
     try {
       const response = await axios.post(endpoint, formData);

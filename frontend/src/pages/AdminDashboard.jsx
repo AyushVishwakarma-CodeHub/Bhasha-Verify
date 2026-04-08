@@ -15,7 +15,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
-        const response = await axios.get(`http://localhost:8000/api/admin/analytics?user_id=${authUser.id}`);
+        const response = await axios.get(`https://bhasha-verify.onrender.com/api/admin/analytics?user_id=${authUser.id}`);
         setStats(response.data);
       } catch (error) {
         console.error("Failed to fetch admin stats:", error);

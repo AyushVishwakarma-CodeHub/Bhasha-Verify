@@ -38,7 +38,7 @@ export default function Home() {
   const fetchHistory = async () => {
     setLoadingHistory(true);
     try {
-      const response = await axios.get(`http://localhost:8000/api/history?user_id=${authUser.id}`);
+      const response = await axios.get(`https://bhasha-verify.onrender.com/api/history?user_id=${authUser.id}`);
       setHistory(response.data);
     } catch (err) {
       console.error("Failed to fetch history:", err);
@@ -56,7 +56,7 @@ export default function Home() {
     setError(null);
 
     try {
-      const response = await axios.post('http://localhost:8000/api/scan', {
+      const response = await axios.post('https://bhasha-verify.onrender.com/api/scan', {
         message: message,
         user_id: authUser.id
       });
@@ -82,7 +82,7 @@ export default function Home() {
       formData.append('audio', audioFile);
       formData.append('user_id', authUser.id);
 
-      const response = await axios.post('http://localhost:8000/api/scan-audio', formData, {
+      const response = await axios.post('https://bhasha-verify.onrender.com/api/scan-audio', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         timeout: 60000 // 60s timeout for transcription
       });
