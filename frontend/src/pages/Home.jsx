@@ -38,7 +38,7 @@ export default function Home() {
   const fetchHistory = async () => {
     setLoadingHistory(true);
     try {
-      const response = await axios.get('http://localhost:8000/api/history');
+      const response = await axios.get(`http://localhost:8000/api/history?user_id=${authUser.id}`);
       setHistory(response.data);
     } catch (err) {
       console.error("Failed to fetch history:", err);
@@ -57,7 +57,8 @@ export default function Home() {
 
     try {
       const response = await axios.post('http://localhost:8000/api/scan', {
-        message: message
+        message: message,
+        user_id: authUser.id
       });
       setTimeout(() => {
         navigate('/result', { state: { data: response.data } });
@@ -79,6 +80,7 @@ export default function Home() {
     try {
       const formData = new FormData();
       formData.append('audio', audioFile);
+      formData.append('user_id', authUser.id);
 
       const response = await axios.post('http://localhost:8000/api/scan-audio', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },

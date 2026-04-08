@@ -79,4 +79,47 @@ class UserModel {
 
         return ['error' => 'Invalid email or password'];
     }
+    /**
+     * Authenticate or seamlessly rigster a Google User
+     */
+    public function authenticateGoogleUser($fullName, $email) {
+        if (!$this->pdo) return ['error' => 'Database connection failed'];
+
+        // 1. Check if user already exists
+        $stmt = $this->pdo->prepare("SELECT id, full_name, email FROM users WHERE email = ? LIMIT 1");
+        $stmt->execute([strtolower(trim($email))]);
+        $user = $stmt->fetch();
+
+        if ($user) {
+            return [
+                'success' => true,
+                'user' => [
+                    'id' => $user['id'],
+                    'full_name' => $user['full_name'],
+                    'email' => $user['email']
+                ]
+            ];
+        }
+
+        // 2. If they don't exist, magically register them with a secure dummy password!
+        $randomPassword = bin2hex(random_bytes(16)); // Secure bypass password that can never be typed
+        $hashed = password_hash($randomPassword, PASSWORD_BCRYPT);
+        
+        $sql = "INSERT INTO users (full_name, email, password_hash) VALUES (?, ?, ?)";
+        $insertStmt = $this->pdo->prepare($sql);
+        
+        try {
+            $insertStmt->execute([trim($fullName), strtolower(trim($email)), $hashed]);
+            return [
+                'success' => true,
+                'user' => [
+                    'id' => $this->pdo->lastInsertId(),
+                    'full_name' => trim($fullName),
+                    'email' => strtolower(trim($email))
+                ]
+            ];
+        } catch (Exception $e) {
+            return ['error' => 'Failed to seamlessly register Google User: ' . $e->getMessage()];
+        }
+    }
 }

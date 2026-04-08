@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldAlert, Mail, Lock, User, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { GoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
 
 export default function Auth() {
@@ -13,7 +14,42 @@ export default function Auth() {
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    setError(''); // Clear error on edit
+    setError('');
+  };
+
+  const finalizeLogin = (user) => {
+    localStorage.setItem('auth_user', JSON.stringify(user));
+    navigate('/');
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setLoading(true);
+    setError('');
+    
+    try {
+      // Send the secure Google JWT token to our PHP backend for verification
+      const response = await axios.post('http://localhost:8000/api/auth/google', {
+        token: credentialResponse.credential
+      });
+      
+      if (response.data.success) {
+        finalizeLogin(response.data.user);
+      } else {
+        setError(response.data.error || "Google Authentication failed. Please try again.");
+      }
+    } catch (err) {
+      if (err.response && err.response.data && err.response.data.error) {
+        setError("Error: " + err.response.data.error);
+      } else {
+        setError("Server Connection Error: " + err.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setError("Failed to initialize Google Sign-In.");
   };
 
   const handleSubmit = async (e) => {
@@ -29,12 +65,8 @@ export default function Auth() {
       const response = await axios.post(endpoint, formData);
       
       if (response.data.success) {
-        // Automatically save user session using LocalStorage
-        let user = isLogin ? response.data.user : { id: response.data.id, email: formData.email, full_name: formData.full_name };
-        localStorage.setItem('auth_user', JSON.stringify(user));
-        
-        // Grant access -> Redirect to Home
-        navigate('/');
+        const user = isLogin ? response.data.user : { id: response.data.id, email: formData.email, full_name: formData.full_name };
+        finalizeLogin(user);
       }
     } catch (err) {
       if (err.response && err.response.data && err.response.data.error) {
@@ -48,7 +80,7 @@ export default function Auth() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen px-4 relative overflow-hidden">
+    <div className="flex flex-col items-center justify-center min-h-screen px-4 p-6 relative overflow-hidden">
       {/* Background glow effects */}
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-neon-green/10 rounded-full blur-[120px] pointer-events-none" />
@@ -156,12 +188,30 @@ export default function Auth() {
             <button 
               type="submit" 
               disabled={loading}
-              className="mt-4 w-full bg-neon-green hover:bg-[#00e68f] text-black font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="mt-2 w-full bg-neon-green hover:bg-[#00e68f] text-black font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Authenticating...' : (isLogin ? 'Access Scanner' : 'Register Securely')}
               {!loading && <ArrowRight size={18} />}
             </button>
           </form>
+
+          {/* Google SSO Divider */}
+          <div className="mt-8 flex items-center gap-4">
+            <div className="flex-1 h-px bg-gray-700"></div>
+            <span className="text-gray-500 text-sm font-medium">OR CONTINUE WITH</span>
+            <div className="flex-1 h-px bg-gray-700"></div>
+          </div>
+
+          <div className="mt-6 flex justify-center w-full relative z-10">
+            <GoogleLogin 
+              onSuccess={handleGoogleSuccess}
+              onError={handleGoogleError}
+              theme="filled_black"
+              size="large"
+              width="100%"
+              shape="pill"
+            />
+          </div>
 
         </div>
       </motion.div>

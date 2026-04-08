@@ -28,11 +28,11 @@ class MessageModel {
     /**
      * Logs the scan request and its results to MySQL
      */
-    public function logScan($message, $trustScore, $heuristics, $aiInsights, $ragResult, $source = 'text') {
+    public function logScan($message, $trustScore, $heuristics, $aiInsights, $ragResult, $source = 'text', $userId = null) {
         if (!$this->pdo) return null;
 
-        $sql = "INSERT INTO scans (original_message, risk_level, probability, analysis_data, source) 
-                VALUES (?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO scans (user_id, original_message, risk_level, probability, analysis_data, source) 
+                VALUES (?, ?, ?, ?, ?, ?)";
         
         $stmt = $this->pdo->prepare($sql);
         
@@ -43,6 +43,7 @@ class MessageModel {
         ]);
 
         $stmt->execute([
+            $userId,
             $message,
             $trustScore['risk_level'],
             $trustScore['probability'],
@@ -56,10 +57,16 @@ class MessageModel {
     /**
      * Fetches the last 20 scans for the history view
      */
-    public function getHistory($limit = 20) {
+    public function getHistory($limit = 20, $userId = null) {
         if (!$this->pdo) return [];
 
-        $stmt = $this->pdo->query("SELECT * FROM scans ORDER BY scanned_at DESC LIMIT $limit");
+        if ($userId) {
+            $stmt = $this->pdo->prepare("SELECT * FROM scans WHERE user_id = ? ORDER BY scanned_at DESC LIMIT $limit");
+            $stmt->execute([$userId]);
+        } else {
+            $stmt = $this->pdo->query("SELECT * FROM scans ORDER BY scanned_at DESC LIMIT $limit");
+        }
+        
         $results = $stmt->fetchAll();
 
         // Decode JSON data for frontend convenience
@@ -73,33 +80,45 @@ class MessageModel {
     /**
      * Aggregates database statistics for the massive Admin Dashboard
      */
-    public function getAnalytics() {
+    public function getAnalytics($userId = null) {
         if (!$this->pdo) return null;
 
+        $whereClause = $userId ? "WHERE user_id = ?" : "";
+        $params = $userId ? [$userId] : [];
+
         // Total scans & average probability
-        $summary = $this->pdo->query("SELECT COUNT(*) as totalScans, AVG(probability) as avgProb FROM scans")->fetch();
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) as totalScans, AVG(probability) as avgProb FROM scans $whereClause");
+        $stmt->execute($params);
+        $summary = $stmt->fetch();
         
         // Group by risk
-        $riskGroups = $this->pdo->query("SELECT risk_level, COUNT(*) as count FROM scans GROUP BY risk_level")->fetchAll();
+        $stmt = $this->pdo->prepare("SELECT risk_level, COUNT(*) as count FROM scans $whereClause GROUP BY risk_level");
+        $stmt->execute($params);
+        $riskGroups = $stmt->fetchAll();
         $risks = ['Safe' => 0, 'Suspicious' => 0, 'Scam' => 0];
         foreach ($riskGroups as $row) {
             $risks[$row['risk_level']] = (int)$row['count'];
         }
 
         // Group by source (Audio vs Text)
-        $sourceGroups = $this->pdo->query("SELECT source, COUNT(*) as count FROM scans GROUP BY source")->fetchAll();
+        $stmt = $this->pdo->prepare("SELECT source, COUNT(*) as count FROM scans $whereClause GROUP BY source");
+        $stmt->execute($params);
+        $sourceGroups = $stmt->fetchAll();
         $sources = ['text' => 0, 'audio' => 0];
         foreach ($sourceGroups as $row) {
             $sources[$row['source'] ?: 'text'] = (int)$row['count'];
         }
 
         // Catch the last 7 days of activity for the timeline chart
-        $timelineGroups = $this->pdo->query("
+        $stmt = $this->pdo->prepare("
             SELECT DATE(scanned_at) as date, COUNT(*) as count 
             FROM scans 
+            $whereClause 
             GROUP BY date 
             ORDER BY date DESC LIMIT 7
-        ")->fetchAll();
+        ");
+        $stmt->execute($params);
+        $timelineGroups = $stmt->fetchAll();
 
         return [
             'totalScans' => (int)$summary['totalScans'],

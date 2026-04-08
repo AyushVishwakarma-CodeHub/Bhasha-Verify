@@ -10,10 +10,12 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/api/admin/analytics');
+        const response = await axios.get(`http://localhost:8000/api/admin/analytics?user_id=${authUser.id}`);
         setStats(response.data);
       } catch (error) {
         console.error("Failed to fetch admin stats:", error);

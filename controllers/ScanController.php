@@ -13,7 +13,7 @@ class ScanController {
         $this->messageModel = new MessageModel();
     }
 
-    public function scanMessage($message, $source = 'text') {
+    public function scanMessage($message, $source = 'text', $userId = null) {
         // 1. Heuristic Engine (30% weight)
         $heuristicResult = $this->heuristicService->analyze($message);
         
@@ -92,7 +92,7 @@ class ScanController {
         ];
 
         // 4. Log to Database
-        $this->messageModel->logScan($message, $result['trust_score'], $heuristicResult, $aiResult, $ragResult, $source);
+        $this->messageModel->logScan($message, $result['trust_score'], $heuristicResult, $aiResult, $ragResult, $source, $userId);
 
         return $result;
     }

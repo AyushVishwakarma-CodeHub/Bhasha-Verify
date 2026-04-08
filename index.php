@@ -36,7 +36,8 @@ if ($path === '/api/scan' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     $controller = new ScanController();
-    $result = $controller->scanMessage($input['message'], 'text');
+    $userId = isset($input['user_id']) ? (int)$input['user_id'] : null;
+    $result = $controller->scanMessage($input['message'], 'text', $userId);
     
     header('Content-Type: application/json');
     echo json_encode($result);
@@ -84,7 +85,8 @@ if ($path === '/api/scan-audio' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Step 2: Analyze the transcribed text through the same 3-layer pipeline
     $controller = new ScanController();
-    $result = $controller->scanMessage($transcription['text'], 'audio');
+    $userId = isset($_POST['user_id']) ? (int)$_POST['user_id'] : null;
+    $result = $controller->scanMessage($transcription['text'], 'audio', $userId);
     
     // Add transcription info to the result
     $result['source'] = 'audio';
@@ -98,7 +100,8 @@ if ($path === '/api/scan-audio' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 // ─── Route 3: Fetch Scan History ──────────────────────────
 if ($path === '/api/history' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $model = new MessageModel();
-    $history = $model->getHistory(20);
+    $userId = isset($_GET['user_id']) ? (int)$_GET['user_id'] : null;
+    $history = $model->getHistory(20, $userId);
     
     header('Content-Type: application/json');
     echo json_encode($history);
@@ -196,7 +199,8 @@ if ($path === '/api/webhook/whatsapp' && $_SERVER['REQUEST_METHOD'] === 'POST') 
 // ─── Route 5: Admin Analytics ──────────────────────────────
 if ($path === '/api/admin/analytics' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $model = new MessageModel();
-    $stats = $model->getAnalytics();
+    $userId = isset($_GET['user_id']) ? (int)$_GET['user_id'] : null;
+    $stats = $model->getAnalytics($userId);
     
     header('Content-Type: application/json');
     echo json_encode($stats);
@@ -242,6 +246,57 @@ if ($path === '/api/auth/login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     header('Content-Type: application/json');
     if (isset($result['error'])) {
         http_response_code(401);
+        echo json_encode($result);
+    } else {
+        echo json_encode($result);
+    }
+    exit();
+}
+
+// ─── Route 8: Google SSO Login ─────────────────────────────
+if ($path === '/api/auth/google' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $input = json_decode(file_get_contents('php://input'), true);
+    
+    if (empty($input['token'])) {
+        http_response_code(400);
+        echo json_encode(['error' => 'JWT Token is required.']);
+        exit();
+    }
+    
+    // Verify the JWT token securely against Google's tokeninfo endpoint
+    $verifyUrl = "https://oauth2.googleapis.com/tokeninfo?id_token=" . urlencode($input['token']);
+    $opts = [ 
+        'http' => [ 'ignore_errors' => true ],
+        'ssl' => [ 'verify_peer' => false, 'verify_peer_name' => false ] 
+    ];
+    $context = stream_context_create($opts);
+    
+    $googleResponse = @file_get_contents($verifyUrl, false, $context);
+    
+    // Debug logging logic
+    error_log("GOOGLE RAW RESPONSE: " . $googleResponse);
+    
+    if (!$googleResponse) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Invalid or expired Google Authentication Token.']);
+        exit();
+    }
+    
+    $googleData = json_decode($googleResponse, true);
+    
+    if (empty($googleData['email']) || empty($googleData['name'])) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Could not extract email or name from Google Profile.']);
+        exit();
+    }
+    
+    // Seamlessly register or login the user
+    $userModel = new UserModel();
+    $result = $userModel->authenticateGoogleUser($googleData['name'], $googleData['email']);
+    
+    header('Content-Type: application/json');
+    if (isset($result['error'])) {
+        http_response_code(500);
         echo json_encode($result);
     } else {
         echo json_encode($result);

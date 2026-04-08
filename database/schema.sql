@@ -5,12 +5,14 @@ USE bhasha_verify;
 -- Create Scans Table
 CREATE TABLE IF NOT EXISTS scans (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NULL,
     original_message TEXT NOT NULL,
     risk_level ENUM('Scam', 'Suspicious', 'Safe') NOT NULL,
     probability DECIMAL(5,2) NOT NULL,
     analysis_data JSON NOT NULL, -- Store full heuristic/AI/RAG blob
     source ENUM('text', 'audio') DEFAULT 'text',
-    scanned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    scanned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Create Users Table for Authentication
