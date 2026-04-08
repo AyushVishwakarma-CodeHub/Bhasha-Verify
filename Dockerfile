@@ -3,8 +3,9 @@ FROM php:8.2-apache
 # Enable Apache mod_rewrite for our API routing
 RUN a2enmod rewrite
 
-# Install MySQL PDO extensions and zip/git for Composer
-RUN apt-get update && apt-get install -y git unzip zip \
+# Install MySQL PDO extensions and security certificates
+RUN apt-get update && apt-get install -y git unzip zip ca-certificates \
+    && update-ca-certificates \
     && docker-php-ext-install pdo pdo_mysql
 
 # Install Composer globally
