@@ -1,0 +1,253 @@
+<?php
+require_once __DIR__ . '/vendor/autoload.php';
+
+use Dotenv\Dotenv;
+$dotenv = Dotenv::createImmutable(__DIR__);
+$dotenv->safeLoad();
+
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
+require_once __DIR__ . '/utils/RegexPatterns.php';
+require_once __DIR__ . '/services/HeuristicService.php';
+require_once __DIR__ . '/services/AIService.php';
+require_once __DIR__ . '/services/RAGService.php';
+require_once __DIR__ . '/services/TranscriptionService.php';
+require_once __DIR__ . '/models/MessageModel.php';
+require_once __DIR__ . '/models/UserModel.php';
+require_once __DIR__ . '/controllers/ScanController.php';
+
+$path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+
+// ─── Route 1: Text Scan ──────────────────────────────
+if ($path === '/api/scan' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $input = json_decode(file_get_contents('php://input'), true);
+    
+    if (!$input || !isset($input['message'])) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Message is required']);
+        exit();
+    }
+    
+    $controller = new ScanController();
+    $result = $controller->scanMessage($input['message'], 'text');
+    
+    header('Content-Type: application/json');
+    echo json_encode($result);
+    exit();
+}
+
+// ─── Route 2: Audio Scan (Upload → Transcribe → Analyze) ─────
+if ($path === '/api/scan-audio' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    
+    // Check if file was uploaded
+    if (!isset($_FILES['audio']) || $_FILES['audio']['error'] !== UPLOAD_ERR_OK) {
+        http_response_code(400);
+        header('Content-Type: application/json');
+        echo json_encode(['error' => 'Audio file is required. Please upload a valid audio file.']);
+        exit();
+    }
+
+    $file = $_FILES['audio'];
+    
+    // Validate file size (max 25MB)
+    $maxSize = 25 * 1024 * 1024;
+    if ($file['size'] > $maxSize) {
+        http_response_code(400);
+        header('Content-Type: application/json');
+        echo json_encode(['error' => 'File too large. Maximum size is 25MB.']);
+        exit();
+    }
+
+    // Validate mime type
+    $allowedMimes = ['audio/mpeg', 'audio/wav', 'audio/x-wav', 'audio/mp4', 'audio/x-m4a', 'audio/ogg', 'audio/webm'];
+    $mimeType = $file['type'] ?: 'audio/mpeg';
+    
+    // Step 1: Transcribe Audio
+    $transcriptionService = new TranscriptionService();
+    $transcription = $transcriptionService->transcribe($file['tmp_name'], $mimeType);
+    
+    if (!$transcription['success']) {
+        header('Content-Type: application/json');
+        echo json_encode([
+            'error' => $transcription['error'],
+            'transcription' => null
+        ]);
+        exit();
+    }
+
+    // Step 2: Analyze the transcribed text through the same 3-layer pipeline
+    $controller = new ScanController();
+    $result = $controller->scanMessage($transcription['text'], 'audio');
+    
+    // Add transcription info to the result
+    $result['source'] = 'audio';
+    $result['transcription'] = $transcription['text'];
+    
+    header('Content-Type: application/json');
+    echo json_encode($result);
+    exit();
+}
+
+// ─── Route 3: Fetch Scan History ──────────────────────────
+if ($path === '/api/history' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $model = new MessageModel();
+    $history = $model->getHistory(20);
+    
+    header('Content-Type: application/json');
+    echo json_encode($history);
+    exit();
+}
+
+// ─── Route 4: Twilio WhatsApp Webhook ─────────────────────
+if ($path === '/api/webhook/whatsapp' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Twilio sends data as form-urlencoded
+    $message = $_POST['Body'] ?? '';
+    $numMedia = (int)($_POST['NumMedia'] ?? 0);
+    $source = 'text';
+    
+    header('Content-Type: text/xml');
+    
+    // Check if the user sent a WhatsApp Audio Note or Video
+    if ($numMedia > 0 && isset($_POST['MediaUrl0'])) {
+        $source = 'audio';
+        $mediaUrl = $_POST['MediaUrl0'];
+        $contentType = $_POST['MediaContentType0'] ?? 'audio/ogg';
+        
+        // Securely download the audio file to a temporary system location
+        $tmpAudioFile = tempnam(sys_get_temp_dir(), 'bw_audio_');
+        
+        // Setup basic stream context to handle the download ignoring SSL issues
+        $opts = [ 
+            'http' => [ 'method' => "GET", 'follow_location' => 1 ],
+            'ssl' => [ 'verify_peer' => false, 'verify_peer_name' => false ]
+        ];
+        $context = stream_context_create($opts);
+        
+        // Suppress PHP warnings (@) so they don't break the XML response
+        $audioContent = @file_get_contents($mediaUrl, false, $context);
+        if ($audioContent === false) {
+            $reply = "❌ *Audio Error*: Failed to download the voice note. Twilio Sandbox blocks local downloads.";
+            header("Content-Type: text/xml");
+            echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Response><Message><Body>" . htmlspecialchars($reply) . "</Body></Message></Response>";
+            exit();
+        }
+        
+        file_put_contents($tmpAudioFile, $audioContent);
+        
+        // Ensure file is not tiny (e.g. an HTML auth error page)
+        if (filesize($tmpAudioFile) < 1000) {
+            $reply = "❌ *Audio Error*: Downloaded file is too small or corrupt. Twilio may be blocking media access.";
+            echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Response><Message><Body>" . htmlspecialchars($reply) . "</Body></Message></Response>";
+            exit();
+        }
+        
+        // Transcribe the downloaded audio using Gemini
+        $transcriptionService = new TranscriptionService();
+        $transResp = $transcriptionService->transcribe($tmpAudioFile, $contentType);
+        
+        // Clean up hard drive immediately
+        @unlink($tmpAudioFile);
+        
+        if (!$transResp['success']) {
+            $reply = "❌ *Audio Error*: Transcription failed. " . $transResp['error'];
+            echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Response><Message><Body>" . htmlspecialchars($reply) . "</Body></Message></Response>";
+            exit();
+        }
+        
+        $message = "AUDIO_TRANSCRIPT: " . $transResp['text'];
+    }
+    
+    if (trim(str_replace('AUDIO_TRANSCRIPT: ', '', $message)) === '') {
+        $response = "Welcome to Bhasha-Verify! Forward me any suspicious message, link, or *voice note*, and I will scan it for scams.";
+        echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Response><Message><Body>" . htmlspecialchars($response) . "</Body></Message></Response>";
+        exit();
+    }
+    
+    // Analyze message
+    $controller = new ScanController();
+    $result = $controller->scanMessage($message, $source);
+    
+    $risk = $result['trust_score']['risk_level'];
+    $prob = (int)$result['trust_score']['probability'];
+    
+    // Format response beautifully for WhatsApp
+    $emoji = $risk === 'Scam' ? '🚨' : ($risk === 'Suspicious' ? '⚠️' : '✅');
+    $reply = "*Bhasha-Verify Result*\n";
+    $reply .= "$emoji *Risk:* $risk ($prob% Probable)\n\n";
+    
+    if (!empty($result['explanations'])) {
+        $reply .= "*Analysis:*\n";
+        foreach ($result['explanations'] as $exp) {
+            $reply .= "- $exp\n";
+        }
+    }
+    
+    echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Response><Message><Body>" . htmlspecialchars($reply) . "</Body></Message></Response>";
+    exit();
+}
+
+// ─── Route 5: Admin Analytics ──────────────────────────────
+if ($path === '/api/admin/analytics' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $model = new MessageModel();
+    $stats = $model->getAnalytics();
+    
+    header('Content-Type: application/json');
+    echo json_encode($stats);
+    exit();
+}
+
+// ─── Route 6: User Registration ────────────────────────────
+if ($path === '/api/auth/register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $input = json_decode(file_get_contents('php://input'), true);
+    
+    if (empty($input['full_name']) || empty($input['email']) || empty($input['password'])) {
+        http_response_code(400);
+        echo json_encode(['error' => 'All fields are required.']);
+        exit();
+    }
+    
+    $userModel = new UserModel();
+    $result = $userModel->createUser($input['full_name'], $input['email'], $input['password']);
+    
+    header('Content-Type: application/json');
+    if (isset($result['error'])) {
+        http_response_code(400);
+        echo json_encode($result);
+    } else {
+        echo json_encode($result);
+    }
+    exit();
+}
+
+// ─── Route 7: User Login ───────────────────────────────────
+if ($path === '/api/auth/login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $input = json_decode(file_get_contents('php://input'), true);
+    
+    if (empty($input['email']) || empty($input['password'])) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Email and password are required.']);
+        exit();
+    }
+    
+    $userModel = new UserModel();
+    $result = $userModel->authenticateUser($input['email'], $input['password']);
+    
+    header('Content-Type: application/json');
+    if (isset($result['error'])) {
+        http_response_code(401);
+        echo json_encode($result);
+    } else {
+        echo json_encode($result);
+    }
+    exit();
+}
+
+http_response_code(404);
+echo json_encode(['error' => 'API route not found']);

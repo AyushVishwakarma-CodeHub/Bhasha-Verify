@@ -1,0 +1,14 @@
+{
+    "name": "ayush/bhasha-verify",
+    "description": "AI Scam Detection Platform",
+    "require": {
+        "guzzlehttp/guzzle": "^7.0",
+        "vlucas/phpdotenv": "^5.0"
+    },
+    "authors": [
+        {
+            "name": "Ayush Vishwakarma",
+            "email": "ayushvishwakarmadto29@gmail.com"
+        }
+    ]
+}

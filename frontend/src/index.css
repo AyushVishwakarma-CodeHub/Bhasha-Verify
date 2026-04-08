@@ -1,0 +1,45 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-dark text-white font-sans antialiased min-h-screen overflow-x-hidden;
+  }
+}
+
+.glass-panel {
+  @apply bg-[#151515]/70 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl;
+}
+
+.neon-text-green {
+  text-shadow: 0 0 10px rgba(0, 255, 159, 0.5);
+  @apply text-neon-green;
+}
+
+.neon-text-red {
+  text-shadow: 0 0 10px rgba(255, 77, 77, 0.5);
+  @apply text-neon-red;
+}
+
+.neon-text-yellow {
+  text-shadow: 0 0 10px rgba(255, 200, 87, 0.5);
+  @apply text-neon-yellow;
+}
+
+/* Custom Scrollbar for better UI */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0D0D0D; 
+}
+::-webkit-scrollbar-thumb {
+  background: #333; 
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #555; 
+}
