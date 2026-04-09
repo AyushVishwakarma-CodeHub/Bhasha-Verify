@@ -109,7 +109,7 @@ export default function Home() {
           onClick={() => navigate('/admin')}
         >
           <BarChart3 size={18} />
-          <span className="font-semibold tracking-wider text-sm hidden sm:inline">ADMIN</span>
+          <span className="font-semibold tracking-wider text-sm hidden sm:inline">DASHBOARD</span>
         </motion.button>
         <motion.button
           initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
