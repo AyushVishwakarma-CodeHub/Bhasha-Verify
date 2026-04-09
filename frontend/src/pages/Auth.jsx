@@ -117,7 +117,7 @@ export default function Auth() {
             {error && <div className="text-red-400 p-3 rounded text-sm text-center bg-red-500/10 border border-red-500/50">{error}</div>}
 
             <button type="submit" disabled={loading} className="w-full bg-neon-green text-black font-bold py-3 rounded-lg hover:bg-[#00e68f] transition-all flex items-center justify-center gap-2">
-              {loading ? 'Processing...' : (isLogin ? 'Access Scanner' : 'Create Account')}
+              {loading ? 'Authenticating...' : (isLogin ? 'Access Scanner' : 'Create Account')}
               {!loading && <ArrowRight size={18} />}
             </button>
           </form>
