@@ -55,10 +55,12 @@ export default function Auth() {
       if (response.data.success) {
         const user = isLogin ? response.data.user : { id: response.data.id, ...formData };
         finalizeLogin(user);
+      } else {
+        setError(response.data.error || "Authentication failed. Please check your credentials.");
+        setLoading(false);
       }
     } catch (err) {
-      setError(err.response?.data?.error || "Network error.");
-    } finally {
+      setError(err.response?.data?.error || "Network error. Backend may be waking up — try again in 30 seconds.");
       setLoading(false);
     }
   };
