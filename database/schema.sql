@@ -1,8 +1,13 @@
--- Create the Database
-CREATE DATABASE IF NOT EXISTS bhasha_verify;
-USE bhasha_verify;
+-- Create Users Table for Authentication First
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    full_name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
--- Create Scans Table
+-- Create Scans Table Second
 CREATE TABLE IF NOT EXISTS scans (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NULL,
@@ -13,13 +18,4 @@ CREATE TABLE IF NOT EXISTS scans (
     source ENUM('text', 'audio') DEFAULT 'text',
     scanned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-);
-
--- Create Users Table for Authentication
-CREATE TABLE IF NOT EXISTS users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    full_name VARCHAR(100) NOT NULL,
-    email VARCHAR(150) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

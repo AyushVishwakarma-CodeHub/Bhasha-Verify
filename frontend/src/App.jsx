@@ -5,6 +5,7 @@ import Result from './pages/Result';
 import AdminDashboard from './pages/AdminDashboard';
 import Auth from './pages/Auth';
 import ProtectedRoute from './components/ProtectedRoute';
+import WhatsAppFAB from './components/WhatsAppFAB';
 
 function App() {
   return (
@@ -25,6 +26,9 @@ function App() {
             </Route>
           </Routes>
         </div>
+
+        {/* Global WhatsApp FAB */}
+        <WhatsAppFAB />
       </div>
     </Router>
   );
