@@ -243,15 +243,26 @@ export default function Home() {
                 <p className="text-gray-500 py-10">No scans yet</p>
               ) : (
                 <div className="w-full space-y-2 md:space-y-3 max-h-[400px] overflow-y-auto">
-                  {history.map(item => (
-                    <div key={item.id}
-                      className="bg-black/40 p-3 md:p-4 rounded-xl flex justify-between items-center cursor-pointer hover:bg-black/60 transition-colors"
-                      onClick={() => navigate('/result', { state: { data: { ...item, trust_score: { probability: parseFloat(item.probability), risk_level: item.risk_level }, analysis_data: JSON.parse(item.analysis_data) }}})}
-                    >
+                  {history.map(item => {
+                    const analysisData = typeof item.analysis_data === 'string' ? JSON.parse(item.analysis_data) : item.analysis_data;
+                    return (
+                      <div key={item.id}
+                        className="bg-black/40 p-3 md:p-4 rounded-xl flex justify-between items-center cursor-pointer hover:bg-black/60 transition-colors"
+                        onClick={() => navigate('/result', { state: { data: {
+                          original_message: item.original_message,
+                          trust_score: { probability: parseFloat(item.probability), risk_level: item.risk_level },
+                          heuristic_analysis: analysisData?.heuristics,
+                          ai_insights: analysisData?.ai,
+                          rag_verification: analysisData?.rag,
+                          source: item.source,
+                          isFromHistory: true
+                        }}})}
+                      >
                       <p className="text-gray-300 truncate text-sm max-w-[200px] sm:max-w-[300px]">{item.original_message}</p>
                       <ArrowRight size={16} className="text-gray-600 shrink-0" />
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </motion.div>
