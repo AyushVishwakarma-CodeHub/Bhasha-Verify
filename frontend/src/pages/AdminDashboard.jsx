@@ -16,14 +16,24 @@ export default function AdminDashboard() {
   const [activeSection, setActiveSection] = useState('overview'); // overview | users | activity
 
   const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+  const ADMIN_EMAILS = ['ayushvishwakarmadto29@gmail.com'];
+  const isAdmin = ADMIN_EMAILS.includes(authUser?.email?.toLowerCase());
 
   useEffect(() => {
+    if (!isAdmin) {
+      navigate('/');
+      return;
+    }
+  }, [isAdmin]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
     const fetchAll = async () => {
       try {
         const [statsRes, usersRes, activityRes] = await Promise.all([
           axios.get(`${API}/api/admin/analytics?user_id=${authUser.id}`),
-          axios.get(`${API}/api/admin/users`),
-          axios.get(`${API}/api/admin/activity`)
+          axios.get(`${API}/api/admin/users?admin_email=${encodeURIComponent(authUser.email)}`),
+          axios.get(`${API}/api/admin/activity?admin_email=${encodeURIComponent(authUser.email)}`)
         ]);
         setStats(statsRes.data);
         setUsers(usersRes.data);

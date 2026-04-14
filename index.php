@@ -207,8 +207,21 @@ if ($path === '/api/admin/analytics' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     exit();
 }
 
-// ─── Route 5a: Admin — All Users ───────────────────────────
+// ─── Admin Guard: Only these emails can access admin routes ───
+$ADMIN_EMAILS = ['ayushvishwakarmadto29@gmail.com'];
+
+function isAdminRequest($adminEmails) {
+    $email = isset($_GET['admin_email']) ? strtolower(trim($_GET['admin_email'])) : '';
+    return in_array($email, $adminEmails);
+}
+
+// ─── Route 5a: Admin — All Users (PROTECTED) ──────────────
 if ($path === '/api/admin/users' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    if (!isAdminRequest($ADMIN_EMAILS)) {
+        http_response_code(403);
+        echo json_encode(['error' => 'Access denied. Admin only.']);
+        exit();
+    }
     $model = new MessageModel();
     $users = $model->getAllUsers();
     
@@ -217,8 +230,13 @@ if ($path === '/api/admin/users' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     exit();
 }
 
-// ─── Route 5b: Admin — Activity Feed ───────────────────────
+// ─── Route 5b: Admin — Activity Feed (PROTECTED) ──────────
 if ($path === '/api/admin/activity' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    if (!isAdminRequest($ADMIN_EMAILS)) {
+        http_response_code(403);
+        echo json_encode(['error' => 'Access denied. Admin only.']);
+        exit();
+    }
     $model = new MessageModel();
     $activity = $model->getRecentActivityFeed(50);
     
