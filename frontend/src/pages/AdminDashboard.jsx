@@ -20,26 +20,29 @@ export default function AdminDashboard() {
   const isAdmin = ADMIN_EMAILS.includes(authUser?.email?.toLowerCase());
 
   useEffect(() => {
-    if (!isAdmin) {
-      navigate('/');
-      return;
-    }
-  }, [isAdmin]);
-
-  useEffect(() => {
-    if (!isAdmin) return;
     const fetchAll = async () => {
       try {
-        const [statsRes, usersRes, activityRes] = await Promise.all([
-          axios.get(`${API}/api/admin/analytics?user_id=${authUser.id}`),
-          axios.get(`${API}/api/admin/users?admin_email=${encodeURIComponent(authUser.email)}`),
-          axios.get(`${API}/api/admin/activity?admin_email=${encodeURIComponent(authUser.email)}`)
-        ]);
-        setStats(statsRes.data);
-        setUsers(usersRes.data);
-        setActivity(activityRes.data);
+        // Analytics: admin sees global, regular users see their own
+        const analyticsUrl = isAdmin
+          ? `${API}/api/admin/analytics`
+          : `${API}/api/admin/analytics?user_id=${authUser.id}`;
+        
+        const requests = [axios.get(analyticsUrl)];
+        
+        // Only admin can fetch users list and activity feed
+        if (isAdmin) {
+          requests.push(
+            axios.get(`${API}/api/admin/users?admin_email=${encodeURIComponent(authUser.email)}`),
+            axios.get(`${API}/api/admin/activity?admin_email=${encodeURIComponent(authUser.email)}`)
+          );
+        }
+
+        const results = await Promise.all(requests);
+        setStats(results[0].data);
+        if (isAdmin && results[1]) setUsers(results[1].data);
+        if (isAdmin && results[2]) setActivity(results[2].data);
       } catch (error) {
-        console.error("Failed to fetch admin data:", error);
+        console.error("Failed to fetch data:", error);
       } finally {
         setLoading(false);
       }
@@ -97,8 +100,10 @@ export default function AdminDashboard() {
 
   const NAV_TABS = [
     { id: 'overview', label: 'Analytics', icon: Activity },
-    { id: 'users', label: 'Users', icon: Users, count: users.length },
-    { id: 'activity', label: 'Activity Feed', icon: Radio, count: activity.length },
+    ...(isAdmin ? [
+      { id: 'users', label: 'Users', icon: Users, count: users.length },
+      { id: 'activity', label: 'Activity Feed', icon: Radio, count: activity.length },
+    ] : [])
   ];
 
   return (
@@ -116,9 +121,11 @@ export default function AdminDashboard() {
       {/* Title */}
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
         <h1 className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-white to-gray-500 bg-clip-text text-transparent">
-          Admin Portal
+          {isAdmin ? 'Admin Portal' : 'My Analytics'}
         </h1>
-        <p className="text-gray-400 mt-1 text-sm md:text-lg">Real-time platform monitoring & user management.</p>
+        <p className="text-gray-400 mt-1 text-sm md:text-lg">
+          {isAdmin ? 'Real-time platform monitoring & user management.' : 'Your personal scan analytics & security insights.'}
+        </p>
       </motion.div>
 
       {/* Tab Navigation */}

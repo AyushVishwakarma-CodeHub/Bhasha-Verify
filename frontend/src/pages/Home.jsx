@@ -96,16 +96,14 @@ export default function Home() {
         <span className="text-gray-400 text-sm hidden md:block">
           Welcome, <span className="text-white font-medium">{authUser?.full_name || 'User'}</span>
         </span>
-        {isAdmin && (
-          <motion.button
-            initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-1.5 px-3 py-1.5 md:px-4 md:py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-full border border-blue-500/20 transition-colors text-xs md:text-sm"
-            onClick={() => navigate('/admin')}
-          >
-            <BarChart3 size={16} />
-            <span className="font-semibold tracking-wider hidden sm:inline">DASHBOARD</span>
-          </motion.button>
-        )}
+        <motion.button
+          initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-1.5 px-3 py-1.5 md:px-4 md:py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-full border border-blue-500/20 transition-colors text-xs md:text-sm"
+          onClick={() => navigate('/admin')}
+        >
+          <BarChart3 size={16} />
+          <span className="font-semibold tracking-wider hidden sm:inline">{isAdmin ? 'ADMIN' : 'ANALYTICS'}</span>
+        </motion.button>
         <motion.button
           initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
