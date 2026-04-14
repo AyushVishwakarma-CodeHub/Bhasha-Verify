@@ -34,8 +34,8 @@ class MessageModel {
     public function logScan($message, $trustScore, $heuristics, $aiInsights, $ragResult, $source = 'text', $userId = null) {
         if (!$this->pdo) return null;
 
-        $sql = "INSERT INTO scans (user_id, original_message, risk_level, probability, analysis_data, source) 
-                VALUES (?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO scans (user_id, original_message, risk_level, probability, analysis_data, source, scanned_at) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)";
         
         $stmt = $this->pdo->prepare($sql);
         
@@ -45,13 +45,16 @@ class MessageModel {
             'rag' => $ragResult
         ]);
 
+        $currentTime = date('Y-m-d H:i:s');
+
         $stmt->execute([
             $userId,
             $message,
             $trustScore['risk_level'],
             $trustScore['probability'],
             $analysisData,
-            $source
+            $source,
+            $currentTime
         ]);
 
         return $this->pdo->lastInsertId();

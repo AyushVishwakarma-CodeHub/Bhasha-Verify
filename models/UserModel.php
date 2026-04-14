@@ -47,11 +47,13 @@ class UserModel {
 
         $hashed = password_hash($rawPassword, PASSWORD_BCRYPT);
         
-        $sql = "INSERT INTO users (full_name, email, password_hash) VALUES (?, ?, ?)";
+        $sql = "INSERT INTO users (full_name, email, password_hash, created_at) VALUES (?, ?, ?, ?)";
         $stmt = $this->pdo->prepare($sql);
         
+        $currentTime = date('Y-m-d H:i:s');
+
         try {
-            $stmt->execute([trim($fullName), strtolower(trim($email)), $hashed]);
+            $stmt->execute([trim($fullName), strtolower(trim($email)), $hashed, $currentTime]);
             return ['success' => true, 'id' => $this->pdo->lastInsertId()];
         } catch (Exception $e) {
             return ['error' => 'Failed to create user: ' . $e->getMessage()];
