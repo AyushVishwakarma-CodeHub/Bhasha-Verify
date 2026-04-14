@@ -169,9 +169,13 @@ export default function AdminDashboard() {
               </p>
               <h2 className="text-4xl md:text-5xl font-bold text-neon-red">{stats.riskDistribution.Scam || 0}</h2>
             </motion.div>
-            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }} className="glass-panel p-5 md:p-6">
-              <p className="text-gray-400 text-xs md:text-sm font-semibold uppercase tracking-wider mb-2">Registered Users</p>
-              <h2 className="text-4xl md:text-5xl font-bold text-white">{users.length}</h2>
+            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }} className="glass-panel p-5 md:p-6 transition-all hover:border-white/20">
+              <p className="text-gray-400 text-xs md:text-sm font-semibold uppercase tracking-wider mb-2">
+                {isAdmin ? 'Registered Users' : 'Safe Interactions'}
+              </p>
+              <h2 className="text-4xl md:text-5xl font-bold text-white">
+                {isAdmin ? users.length : (stats.riskDistribution.Safe || 0)}
+              </h2>
             </motion.div>
           </div>
 
@@ -189,7 +193,7 @@ export default function AdminDashboard() {
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
-                  <p className="text-gray-400 text-[10px] uppercase tracking-widest">Global</p>
+                  <p className="text-gray-400 text-[10px] uppercase tracking-widest">{isAdmin ? 'Global' : 'My'}</p>
                   <p className="text-white text-xl font-bold">Threats</p>
                 </div>
               </div>
