@@ -54,7 +54,9 @@ export default function AdminDashboard() {
     return (
       <div className="min-h-screen flex items-center justify-center flex-col gap-4">
         <Activity className="animate-spin text-neon-green" size={40} />
-        <h2 className="text-white text-xl animate-pulse">Loading Admin Portal...</h2>
+        <h2 className="text-white text-xl animate-pulse">
+          {isAdmin ? 'Loading Admin Portal...' : 'Loading your analytical portal...'}
+        </h2>
       </div>
     );
   }
