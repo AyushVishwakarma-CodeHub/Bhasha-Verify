@@ -131,4 +131,41 @@ class MessageModel {
             'recentActivity' => array_reverse($timelineGroups)
         ];
     }
+
+    /**
+     * Returns all registered users with their scan counts for the Admin Portal
+     */
+    public function getAllUsers() {
+        if (!$this->pdo) return [];
+
+        $sql = "SELECT u.id, u.full_name, u.email, u.created_at,
+                       COUNT(s.id) as scan_count,
+                       MAX(s.scanned_at) as last_active
+                FROM users u
+                LEFT JOIN scans s ON u.id = s.user_id
+                GROUP BY u.id, u.full_name, u.email, u.created_at
+                ORDER BY u.created_at DESC";
+
+        $stmt = $this->pdo->query($sql);
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Returns the latest 50 scan activities with user info for the Admin Activity Feed
+     */
+    public function getRecentActivityFeed($limit = 50) {
+        if (!$this->pdo) return [];
+
+        $sql = "SELECT s.id, s.original_message, s.risk_level, s.probability, 
+                       s.source, s.scanned_at,
+                       COALESCE(u.full_name, 'Anonymous') as user_name,
+                       u.email as user_email
+                FROM scans s
+                LEFT JOIN users u ON s.user_id = u.id
+                ORDER BY s.scanned_at DESC
+                LIMIT $limit";
+
+        $stmt = $this->pdo->query($sql);
+        return $stmt->fetchAll();
+    }
 }

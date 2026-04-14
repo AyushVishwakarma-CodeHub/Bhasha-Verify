@@ -207,6 +207,26 @@ if ($path === '/api/admin/analytics' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     exit();
 }
 
+// ─── Route 5a: Admin — All Users ───────────────────────────
+if ($path === '/api/admin/users' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $model = new MessageModel();
+    $users = $model->getAllUsers();
+    
+    header('Content-Type: application/json');
+    echo json_encode($users);
+    exit();
+}
+
+// ─── Route 5b: Admin — Activity Feed ───────────────────────
+if ($path === '/api/admin/activity' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $model = new MessageModel();
+    $activity = $model->getRecentActivityFeed(50);
+    
+    header('Content-Type: application/json');
+    echo json_encode($activity);
+    exit();
+}
+
 // ─── Route 6: User Registration ────────────────────────────
 if ($path === '/api/auth/register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = json_decode(file_get_contents('php://input'), true);
