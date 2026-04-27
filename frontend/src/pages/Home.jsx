@@ -186,6 +186,35 @@ export default function Home() {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-neon-green rounded-full shadow-[0_0_12px_rgba(0,255,159,0.7)]" />
       </motion.div>
 
+      {/* ═══ BG LAYER 7: MATRIX DATA STREAM ═══ */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.03] z-0">
+        {[...Array(15)].map((_, i) => (
+          <motion.div
+            key={`matrix-${i}`}
+            className="absolute text-neon-green font-mono text-[10px] whitespace-nowrap"
+            style={{ left: `${(i + 0.5) * (100 / 15)}%`, top: '-20%' }}
+            animate={{ y: ['0vh', '120vh'] }}
+            transition={{ duration: 15 + Math.random() * 10, repeat: Infinity, ease: 'linear', delay: Math.random() * 5 }}
+          >
+            {Math.random().toString(2).substr(2, 30)}<br/>
+            {Math.random().toString(2).substr(2, 30)}<br/>
+            {Math.random().toString(2).substr(2, 30)}
+          </motion.div>
+        ))}
+      </div>
+
+      {/* ═══ BG LAYER 8: LASER SCAN LINE ═══ */}
+      <motion.div
+        className="absolute left-0 right-0 h-[2px] pointer-events-none z-10"
+        style={{
+          background: 'linear-gradient(90deg, transparent 0%, rgba(0,255,159,0.4) 50%, transparent 100%)',
+          boxShadow: '0 0 20px 4px rgba(0,255,159,0.1)',
+        }}
+        animate={{ top: ['10%', '90%', '10%'] }}
+        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+      />
+
+
       {/* ─── HEADER BAR ─── */}
       <div className="absolute top-4 right-4 md:top-12 md:right-12 flex items-center gap-2 z-20">
         <span className="text-gray-400 text-sm hidden md:block">
