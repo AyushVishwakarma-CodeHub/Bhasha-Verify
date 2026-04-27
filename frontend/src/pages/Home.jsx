@@ -89,7 +89,102 @@ export default function Home() {
   if (loading) return <LoadingAnalyzer />;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen px-4 py-6 relative">
+    <div className="flex flex-col items-center justify-center min-h-screen px-4 py-6 relative overflow-hidden bg-[#030306]">
+
+      {/* ═══ BG LAYER 1: 3D PERSPECTIVE GRID ═══ */}
+      <div className="absolute bottom-0 left-0 right-0 h-[55%] overflow-hidden pointer-events-none" style={{ perspective: '400px' }}>
+        <div 
+          className="w-full h-full"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(0,255,159,0.04) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(0,255,159,0.025) 1px, transparent 1px)
+            `,
+            backgroundSize: '60px 60px',
+            transform: 'rotateX(65deg)',
+            transformOrigin: 'center top',
+            maskImage: 'linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 65%)',
+            WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 65%)',
+          }}
+        />
+      </div>
+
+      {/* ═══ BG LAYER 2: FLOATING SCAM MESSAGES ═══ */}
+      {[
+        { text: '"आपका अकाउंट ब्लॉक..."', x: '2%', y: '20%', delay: 0 },
+        { text: '"KYC update karo..."', x: '78%', y: '12%', delay: 2 },
+        { text: '"₹50,000 lottery jeet gaye!"', x: '5%', y: '82%', delay: 4 },
+        { text: '"OTP share karo..."', x: '80%', y: '78%', delay: 6 },
+      ].map((msg, i) => (
+        <motion.div
+          key={`msg-${i}`}
+          className="absolute pointer-events-none px-2.5 py-1.5 rounded-lg text-[10px] font-mono truncate max-w-[160px]"
+          style={{
+            left: msg.x, top: msg.y,
+            background: 'rgba(255,77,77,0.08)',
+            border: '1px solid rgba(255,77,77,0.12)',
+            color: 'rgba(255,255,255,0.2)',
+          }}
+          animate={{ y: [0, -12, 0], opacity: [0.2, 0.5, 0.2] }}
+          transition={{ duration: 6 + i, repeat: Infinity, delay: msg.delay, ease: "easeInOut" }}
+        >
+          {msg.text}
+        </motion.div>
+      ))}
+
+      {/* ═══ BG LAYER 3: SHIELD PULSE ═══ */}
+      <motion.div
+        className="absolute pointer-events-none"
+        style={{ top: '50%', left: '50%', x: '-50%', y: '-50%' }}
+        animate={{ scale: [1, 1.04, 1], opacity: [0.03, 0.06, 0.03] }}
+        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <svg width="350" height="350" viewBox="0 0 400 400" fill="none">
+          <path d="M200 40L340 110V230C340 310 270 370 200 390C130 370 60 310 60 230V110L200 40Z" 
+            stroke="#00FF9F" strokeWidth="1" fill="rgba(0,255,159,0.015)" />
+        </svg>
+      </motion.div>
+
+      {/* ═══ BG LAYER 4: AURORA ═══ */}
+      <motion.div 
+        className="absolute top-[-15%] left-[-20%] w-[60%] h-[45%] rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(ellipse, rgba(0,255,159,0.05) 0%, transparent 70%)', filter: 'blur(60px)' }}
+        animate={{ x: [0, 60, 0], opacity: [0.3, 0.5, 0.3] }}
+        transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div 
+        className="absolute bottom-[-10%] right-[-15%] w-[45%] h-[35%] rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(ellipse, rgba(59,130,246,0.06) 0%, transparent 70%)', filter: 'blur(50px)' }}
+        animate={{ x: [0, -50, 0], opacity: [0.25, 0.45, 0.25] }}
+        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+      />
+
+      {/* ═══ BG LAYER 5: PARTICLES ═══ */}
+      {[...Array(14)].map((_, i) => (
+        <motion.div
+          key={`hp-${i}`}
+          className="absolute rounded-full pointer-events-none"
+          style={{
+            width: `${Math.random() * 2.5 + 1}px`,
+            height: `${Math.random() * 2.5 + 1}px`,
+            background: i % 3 === 0 ? '#00FF9F' : i % 3 === 1 ? '#3B82F6' : '#A855F7',
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+          }}
+          animate={{ y: [0, -(50 + Math.random() * 100), 0], opacity: [0, 0.6, 0] }}
+          transition={{ duration: 5 + Math.random() * 5, repeat: Infinity, delay: Math.random() * 7, ease: "easeInOut" }}
+        />
+      ))}
+
+      {/* ═══ BG LAYER 6: ORBITING RING ═══ */}
+      <motion.div
+        className="absolute w-[550px] h-[550px] rounded-full border border-neon-green/[0.04] pointer-events-none"
+        style={{ top: '50%', left: '50%', x: '-50%', y: '-50%' }}
+        animate={{ rotate: 360 }}
+        transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+      >
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-neon-green rounded-full shadow-[0_0_12px_rgba(0,255,159,0.7)]" />
+      </motion.div>
 
       {/* ─── HEADER BAR ─── */}
       <div className="absolute top-4 right-4 md:top-12 md:right-12 flex items-center gap-2 z-20">
