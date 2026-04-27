@@ -19,7 +19,7 @@ export default function Auth() {
 
   const finalizeLogin = (user) => {
     localStorage.setItem('auth_user', JSON.stringify(user));
-    navigate('/');
+    navigate('/scanner');
   };
 
   const handleGoogleSuccess = async (credentialResponse) => {
@@ -66,10 +66,138 @@ export default function Auth() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen px-4 py-8 relative overflow-hidden">
-      {/* Background glow effects */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-neon-green/10 rounded-full blur-[120px] pointer-events-none" />
+    <div className="flex flex-col items-center justify-center min-h-screen px-4 py-8 relative overflow-hidden bg-[#030306]">
+
+      {/* ═══ LAYER 1: 3D PERSPECTIVE GRID ═══ */}
+      <div className="absolute bottom-0 left-0 right-0 h-[60%] overflow-hidden pointer-events-none" style={{ perspective: '400px' }}>
+        <div 
+          className="w-full h-full"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(0,255,159,0.05) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(0,255,159,0.03) 1px, transparent 1px)
+            `,
+            backgroundSize: '60px 60px',
+            transform: 'rotateX(65deg)',
+            transformOrigin: 'center top',
+            maskImage: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 70%)',
+            WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 70%)',
+          }}
+        />
+      </div>
+
+      {/* ═══ LAYER 2: FLOATING SCAM MESSAGES (Hinglish) ═══ */}
+      {[
+        { text: '"आपका अकाउंट ब्लॉक हो गया है..."', x: '5%', y: '15%', delay: 0, color: 'rgba(255,77,77,0.12)' },
+        { text: '"KYC update karo nahi to account band..."', x: '65%', y: '10%', delay: 1.5, color: 'rgba(255,77,77,0.1)' },
+        { text: '"₹50,000 lottery jeet gaye! Click here..."', x: '10%', y: '75%', delay: 3, color: 'rgba(255,200,87,0.1)' },
+        { text: '"OTP share karo verify karne ke liye..."', x: '70%', y: '80%', delay: 4.5, color: 'rgba(255,77,77,0.08)' },
+        { text: '"Dear customer, your SBI card..."', x: '75%', y: '45%', delay: 2, color: 'rgba(255,200,87,0.08)' },
+        { text: '"Police station se bol raha hoon..."', x: '3%', y: '50%', delay: 5, color: 'rgba(255,77,77,0.1)' },
+      ].map((msg, i) => (
+        <motion.div
+          key={`msg-${i}`}
+          className="absolute pointer-events-none px-3 py-2 rounded-lg border text-xs font-mono max-w-[200px] truncate"
+          style={{
+            left: msg.x,
+            top: msg.y,
+            background: msg.color,
+            borderColor: msg.color.replace('0.1', '0.2').replace('0.08', '0.15').replace('0.12', '0.2'),
+            color: 'rgba(255,255,255,0.25)',
+          }}
+          animate={{
+            y: [0, -15, 0],
+            opacity: [0.3, 0.7, 0.3],
+            scale: [0.95, 1, 0.95],
+          }}
+          transition={{
+            duration: 5 + i,
+            repeat: Infinity,
+            delay: msg.delay,
+            ease: "easeInOut",
+          }}
+        >
+          {msg.text}
+        </motion.div>
+      ))}
+
+      {/* ═══ LAYER 3: CENTRAL SHIELD PULSE ═══ */}
+      <motion.div
+        className="absolute pointer-events-none"
+        style={{ top: '50%', left: '50%', x: '-50%', y: '-50%' }}
+        animate={{ scale: [1, 1.05, 1], opacity: [0.04, 0.08, 0.04] }}
+        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <svg width="400" height="400" viewBox="0 0 400 400" fill="none">
+          <path d="M200 40L340 110V230C340 310 270 370 200 390C130 370 60 310 60 230V110L200 40Z" 
+            stroke="#00FF9F" strokeWidth="1.5" fill="rgba(0,255,159,0.02)" />
+          <path d="M200 70L310 125V230C310 295 255 340 200 358C145 340 90 295 90 230V125L200 70Z" 
+            stroke="#00FF9F" strokeWidth="0.5" fill="none" opacity="0.3" />
+          {/* Checkmark inside shield */}
+          <motion.path d="M160 200L185 225L240 170" stroke="#00FF9F" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"
+            animate={{ pathLength: [0, 1, 1, 0], opacity: [0, 1, 1, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </svg>
+      </motion.div>
+
+      {/* ═══ LAYER 4: AURORA NEBULA ═══ */}
+      <motion.div 
+        className="absolute top-[-20%] left-[-30%] w-[70%] h-[50%] rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(ellipse, rgba(0,255,159,0.06) 0%, rgba(59,130,246,0.03) 40%, transparent 70%)', filter: 'blur(60px)' }}
+        animate={{ x: [0, 80, 0], scale: [1, 1.15, 1], opacity: [0.4, 0.6, 0.4] }}
+        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div 
+        className="absolute bottom-[-10%] right-[-15%] w-[50%] h-[40%] rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(ellipse, rgba(59,130,246,0.08) 0%, rgba(168,85,247,0.04) 40%, transparent 70%)', filter: 'blur(50px)' }}
+        animate={{ x: [0, -60, 0], scale: [1.1, 1, 1.1], opacity: [0.3, 0.5, 0.3] }}
+        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+      />
+
+      {/* ═══ LAYER 5: FLOATING PARTICLES ═══ */}
+      {[...Array(18)].map((_, i) => (
+        <motion.div
+          key={`p-${i}`}
+          className="absolute rounded-full pointer-events-none"
+          style={{
+            width: `${Math.random() * 3 + 1}px`,
+            height: `${Math.random() * 3 + 1}px`,
+            background: i % 3 === 0 ? '#00FF9F' : i % 3 === 1 ? '#3B82F6' : '#A855F7',
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+          }}
+          animate={{
+            y: [0, -(60 + Math.random() * 120), 0],
+            opacity: [0, 0.7, 0],
+            scale: [0.5, 1.5, 0.5],
+          }}
+          transition={{
+            duration: 4 + Math.random() * 6,
+            repeat: Infinity,
+            delay: Math.random() * 8,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+
+      {/* ═══ LAYER 6: ORBITING SECURITY RING ═══ */}
+      <motion.div
+        className="absolute w-[500px] h-[500px] rounded-full border border-neon-green/[0.06] pointer-events-none"
+        style={{ top: '50%', left: '50%', x: '-50%', y: '-50%' }}
+        animate={{ rotate: 360 }}
+        transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+      >
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-neon-green rounded-full shadow-[0_0_15px_rgba(0,255,159,0.8)]" />
+      </motion.div>
+      <motion.div
+        className="absolute w-[680px] h-[680px] rounded-full border border-blue-500/[0.04] pointer-events-none"
+        style={{ top: '50%', left: '50%', x: '-50%', y: '-50%' }}
+        animate={{ rotate: -360 }}
+        transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+      >
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-purple-400 rounded-full shadow-[0_0_10px_rgba(168,85,247,0.7)]" />
+      </motion.div>
 
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
@@ -111,7 +239,7 @@ export default function Auth() {
                   <label className="text-xs md:text-sm text-gray-400 mb-1 block">Full Name</label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={16} />
-                    <input type="text" name="full_name" placeholder="John Doe" value={formData.full_name} onChange={handleInputChange}
+                    <input type="text" name="full_name" placeholder="Your Name" value={formData.full_name} onChange={handleInputChange}
                       className="w-full bg-black/50 border border-gray-700 rounded-lg py-2.5 md:py-3 px-9 md:px-10 text-white text-sm md:text-base placeholder-gray-600 focus:outline-none focus:border-neon-green transition-colors"
                       required={!isLogin}
                     />

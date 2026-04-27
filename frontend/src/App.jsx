@@ -4,6 +4,8 @@ import Home from './pages/Home';
 import Result from './pages/Result';
 import AdminDashboard from './pages/AdminDashboard';
 import Auth from './pages/Auth';
+import Landing from './pages/Landing';
+import DeveloperInfo from './pages/DeveloperInfo';
 import ProtectedRoute from './components/ProtectedRoute';
 import WhatsAppFAB from './components/WhatsAppFAB';
 
@@ -17,10 +19,12 @@ function App() {
         
         <div className="relative z-10">
           <Routes>
+            <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/developer" element={<DeveloperInfo />} />
             
             <Route element={<ProtectedRoute />}>
-              <Route path="/" element={<Home />} />
+              <Route path="/scanner" element={<Home />} />
               <Route path="/result" element={<Result />} />
               <Route path="/admin" element={<AdminDashboard />} />
             </Route>

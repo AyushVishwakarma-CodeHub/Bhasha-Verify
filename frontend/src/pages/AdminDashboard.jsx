@@ -112,7 +112,7 @@ export default function AdminDashboard() {
     <div className="min-h-screen p-4 md:p-8 lg:p-12 relative pb-20">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <button onClick={() => navigate('/')} className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm">
+        <button onClick={() => navigate('/scanner')} className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm">
           <ArrowLeft size={18} /> Back to Scanner
         </button>
         <span className="bg-black/50 border border-gray-800 text-gray-300 px-3 py-1.5 rounded-full flex items-center gap-2 text-xs">

@@ -15,7 +15,7 @@ export default function Result() {
   if (!data) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <button onClick={() => navigate('/')} className="text-neon-green underline">Go Back</button>
+        <button onClick={() => navigate('/scanner')} className="text-neon-green underline">Go Back</button>
       </div>
     );
   }
@@ -26,7 +26,7 @@ export default function Result() {
   return (
     <div className="min-h-screen p-6 md:p-12 relative">
       <button 
-        onClick={() => navigate('/')}
+        onClick={() => navigate('/scanner')}
         className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-8"
       >
         <ArrowLeft size={20} /> New Scan
