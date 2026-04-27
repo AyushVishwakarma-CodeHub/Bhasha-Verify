@@ -132,17 +132,39 @@ export default function Home() {
         </motion.div>
       ))}
 
-      {/* ═══ BG LAYER 3: SHIELD PULSE ═══ */}
+      {/* ═══ BG LAYER 3: 3D AI DATA CORE ═══ */}
       <motion.div
         className="absolute pointer-events-none"
-        style={{ top: '50%', left: '50%', x: '-50%', y: '-50%' }}
-        animate={{ scale: [1, 1.04, 1], opacity: [0.03, 0.06, 0.03] }}
-        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        style={{ top: '50%', left: '50%', x: '-50%', y: '-50%', perspective: '1000px' }}
       >
-        <svg width="350" height="350" viewBox="0 0 400 400" fill="none">
-          <path d="M200 40L340 110V230C340 310 270 370 200 390C130 370 60 310 60 230V110L200 40Z" 
-            stroke="#00FF9F" strokeWidth="1" fill="rgba(0,255,159,0.015)" />
-        </svg>
+        <motion.div
+          animate={{ rotateY: 360, rotateX: [15, -15, 15] }}
+          transition={{ 
+            rotateY: { duration: 20, repeat: Infinity, ease: 'linear' }, 
+            rotateX: { duration: 10, repeat: Infinity, ease: 'easeInOut' } 
+          }}
+          style={{ transformStyle: 'preserve-3d' }}
+        >
+          <svg width="400" height="400" viewBox="0 0 400 400" fill="none" className="opacity-80">
+            {/* Outer orbital rings */}
+            <circle cx="200" cy="200" r="150" stroke="#3B82F6" strokeWidth="0.5" strokeDasharray="5 5" fill="none" />
+            <circle cx="200" cy="200" r="120" stroke="#A855F7" strokeWidth="1" fill="none" opacity="0.3" />
+            
+            {/* 3D Isometric Cube Core */}
+            <path d="M200 130 L260 165 L260 235 L200 270 L140 235 L140 165 Z" stroke="#00FF9F" strokeWidth="2" fill="rgba(0,255,159,0.05)" />
+            <path d="M200 130 L200 200 L260 235" stroke="#00FF9F" strokeWidth="1.5" fill="none" />
+            <path d="M200 200 L140 235" stroke="#00FF9F" strokeWidth="1.5" fill="none" />
+            
+            {/* Pulsing Core Node */}
+            <circle cx="200" cy="200" r="8" fill="#00FF9F" className="animate-pulse" style={{ filter: 'drop-shadow(0 0 15px rgba(0,255,159,1))' }} />
+            
+            {/* Connecting Data Lines */}
+            <path d="M260 165 L300 130" stroke="#3B82F6" strokeWidth="1" strokeDasharray="3 3" />
+            <path d="M140 165 L100 130" stroke="#3B82F6" strokeWidth="1" strokeDasharray="3 3" />
+            <path d="M260 235 L300 270" stroke="#A855F7" strokeWidth="1" strokeDasharray="3 3" />
+            <path d="M140 235 L100 270" stroke="#A855F7" strokeWidth="1" strokeDasharray="3 3" />
+          </svg>
+        </motion.div>
       </motion.div>
 
       {/* ═══ BG LAYER 4: AURORA ═══ */}
@@ -202,6 +224,17 @@ export default function Home() {
           </motion.div>
         ))}
       </div>
+
+      {/* ═══ BG LAYER 8: LASER SCAN LINE ═══ */}
+      <motion.div
+        className="absolute left-0 right-0 h-[2px] pointer-events-none z-10"
+        style={{
+          background: 'linear-gradient(90deg, transparent 0%, rgba(0,255,159,0.4) 50%, transparent 100%)',
+          boxShadow: '0 0 20px 4px rgba(0,255,159,0.1)',
+        }}
+        animate={{ top: ['10%', '90%', '10%'] }}
+        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+      />
 
 
       {/* ─── HEADER BAR ─── */}
@@ -298,8 +331,9 @@ export default function Home() {
           {/* TEXT TAB */}
           {activeTab === 'text' && (
             <motion.div key="text-tab" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-              className="glass-panel p-2 flex flex-col items-center w-full"
+              className="glow-border-wrap w-full mt-2"
             >
+              <div className="glow-inner glass-panel p-2 flex flex-col items-center w-full">
               <textarea
                 value={message} onChange={(e) => setMessage(e.target.value)}
                 placeholder="e.g., URGENT: Your SBI account is blocked..."
@@ -313,14 +347,16 @@ export default function Home() {
                   Analyze <ArrowRight size={16} />
                 </button>
               </div>
+              </div>
             </motion.div>
           )}
 
           {/* AUDIO TAB */}
           {activeTab === 'audio' && (
             <motion.div key="audio-tab" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-              className="glass-panel p-4 md:p-8 flex flex-col items-center w-full gap-4 md:gap-6"
+              className="glow-border-wrap w-full mt-2"
             >
+              <div className="glow-inner glass-panel p-4 md:p-8 flex flex-col items-center w-full gap-4 md:gap-6">
               {!audioFile ? (
                 <div className="w-full border-2 border-dashed border-gray-700 rounded-xl p-6 md:p-10 flex flex-col items-center cursor-pointer hover:border-neon-green/50"
                   onClick={() => document.getElementById('audio-upload').click()}
@@ -344,6 +380,7 @@ export default function Home() {
               >
                 Transcribe & Analyze
               </button>
+              </div>
             </motion.div>
           )}
 
