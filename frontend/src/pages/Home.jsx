@@ -203,17 +203,6 @@ export default function Home() {
         ))}
       </div>
 
-      {/* ═══ BG LAYER 8: LASER SCAN LINE ═══ */}
-      <motion.div
-        className="absolute left-0 right-0 h-[2px] pointer-events-none z-10"
-        style={{
-          background: 'linear-gradient(90deg, transparent 0%, rgba(0,255,159,0.4) 50%, transparent 100%)',
-          boxShadow: '0 0 20px 4px rgba(0,255,159,0.1)',
-        }}
-        animate={{ top: ['10%', '90%', '10%'] }}
-        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-      />
-
 
       {/* ─── HEADER BAR ─── */}
       <div className="absolute top-4 right-4 md:top-12 md:right-12 flex items-center gap-2 z-20">
