@@ -45,8 +45,22 @@ export default function Auth() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
+
+    // Add validation for Registration
+    if (!isLogin) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        return setError("Please enter a valid email address with a domain (e.g., name@example.com).");
+      }
+      
+      const nameRegex = /^[a-zA-Z\s]{3,}$/;
+      if (!nameRegex.test(formData.full_name.trim())) {
+        return setError("Please enter a genuine full name (letters only, at least 3 characters).");
+      }
+    }
+
+    setLoading(true);
     const endpoint = isLogin
       ? 'https://bhasha-verify.onrender.com/api/auth/login'
       : 'https://bhasha-verify.onrender.com/api/auth/register';
