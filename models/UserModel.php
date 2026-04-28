@@ -138,7 +138,7 @@ class UserModel {
             $this->pdo->beginTransaction();
 
             // Delete all scan history for this user
-            $stmt = $this->pdo->prepare("DELETE FROM scanned_messages WHERE user_id = ?");
+            $stmt = $this->pdo->prepare("DELETE FROM scans WHERE user_id = ?");
             $stmt->execute([(int)$userId]);
 
             // Delete the user record

@@ -382,8 +382,24 @@ if ($path === '/api/user/request-delete' && $_SERVER['REQUEST_METHOD'] === 'POST
         exit();
     }
     
-    // Log the deletion request (admin can review these)
-    error_log("DELETION REQUEST: User ID=" . $input['user_id'] . ", Email=" . $input['email'] . ", Time=" . date('Y-m-d H:i:s'));
+    // Log the deletion request to the database so the admin sees it in the Activity Feed
+    $messageModel = new MessageModel();
+    $alertMessage = "SYSTEM ALERT: USER REQUESTED ACCOUNT DELETION. Please review and delete user ID: " . $input['user_id'];
+    
+    $trustScore = [
+        'risk_level' => 'Scam', // Use "Scam" so it shows up in RED in the activity feed
+        'probability' => 100
+    ];
+    
+    $messageModel->logScan(
+        $alertMessage, 
+        $trustScore, 
+        ['User requested data deletion (DPDP Act)'], 
+        ['Action Required: Delete this user from Admin Dashboard'], 
+        null, 
+        'text', 
+        (int)$input['user_id']
+    );
     
     header('Content-Type: application/json');
     echo json_encode([
