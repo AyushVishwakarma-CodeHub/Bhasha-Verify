@@ -48,10 +48,10 @@ export default function UrlPreview({ message }) {
         {/* Render live screenshot safely using thum.io */}
         <div className="rounded-lg overflow-hidden border border-gray-800 bg-gray-900 min-h-[200px] flex items-center justify-center relative">
           <img 
-            src={`https://api.microlink.io?url=${encodeURIComponent(extractedUrl)}&screenshot=true&meta=false&embed=screenshot.url`} 
+            src={`https://mini.s-shot.ru/1024x768/PNG/800/Z100/?${extractedUrl}`} 
             onError={(e) => {
-              e.target.onerror = null; // prevent infinite loop
-              e.target.src = `https://s0.wp.com/mshots/v1/${encodeURIComponent(extractedUrl)}?w=600`;
+              e.target.onerror = null;
+              e.target.src = `https://s0.wp.com/mshots/v1/${encodeURIComponent(extractedUrl)}?w=800`;
             }}
             alt="Website Preview" 
             className="w-full object-cover opacity-80 hover:opacity-100 transition-opacity"
