@@ -247,6 +247,21 @@ if ($path === '/api/admin/activity' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     exit();
 }
 
+// ─── Route 5c: Admin — Deletion Requests (PROTECTED) ──────
+if ($path === '/api/admin/deletion-requests' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    if (!isAdminRequest($ADMIN_EMAILS)) {
+        http_response_code(403);
+        echo json_encode(['error' => 'Access denied. Admin only.']);
+        exit();
+    }
+    $model = new MessageModel();
+    $requests = $model->getDeletionRequests();
+    
+    header('Content-Type: application/json');
+    echo json_encode($requests);
+    exit();
+}
+
 // ─── Route 6: User Registration ────────────────────────────
 if ($path === '/api/auth/register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = json_decode(file_get_contents('php://input'), true);

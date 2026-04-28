@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid } from 'recharts';
-import { ArrowLeft, ShieldAlert, Activity, Database, Smartphone, Users, Radio, Mail, Clock, Mic, MessageSquareText, Trash2 } from 'lucide-react';
+import { ArrowLeft, ShieldAlert, Activity, Database, Smartphone, Users, Radio, Mail, Clock, Mic, MessageSquareText, Trash2, FileWarning } from 'lucide-react';
 import axios from 'axios';
 
 const API = 'https://bhasha-verify.onrender.com';
@@ -12,8 +12,9 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
   const [activity, setActivity] = useState([]);
+  const [deletionRequests, setDeletionRequests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeSection, setActiveSection] = useState('overview'); // overview | users | activity
+  const [activeSection, setActiveSection] = useState('overview'); // overview | users | activity | deletion-requests
 
   const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
   const ADMIN_EMAILS = ['ayushvishwakarmadto29@gmail.com'];
@@ -29,11 +30,12 @@ export default function AdminDashboard() {
         
         const requests = [axios.get(analyticsUrl)];
         
-        // Only admin can fetch users list and activity feed
+        // Only admin can fetch users list, activity feed, and deletion requests
         if (isAdmin) {
           requests.push(
             axios.get(`${API}/api/admin/users?admin_email=${encodeURIComponent(authUser.email)}`),
-            axios.get(`${API}/api/admin/activity?admin_email=${encodeURIComponent(authUser.email)}`)
+            axios.get(`${API}/api/admin/activity?admin_email=${encodeURIComponent(authUser.email)}`),
+            axios.get(`${API}/api/admin/deletion-requests?admin_email=${encodeURIComponent(authUser.email)}`)
           );
         }
 
@@ -41,6 +43,7 @@ export default function AdminDashboard() {
         setStats(results[0].data);
         if (isAdmin && results[1]) setUsers(results[1].data);
         if (isAdmin && results[2]) setActivity(results[2].data);
+        if (isAdmin && results[3]) setDeletionRequests(results[3].data);
       } catch (error) {
         console.error("Failed to fetch data:", error);
       } finally {
@@ -72,6 +75,7 @@ export default function AdminDashboard() {
       });
       if (res.data.success) {
         setUsers(users.filter(u => u.id !== userId));
+        setDeletionRequests(deletionRequests.filter(req => req.user_id !== userId));
       }
     } catch (err) {
       alert("Failed to delete user.");
@@ -133,6 +137,7 @@ export default function AdminDashboard() {
     ...(isAdmin ? [
       { id: 'users', label: 'Users', icon: Users, count: users.length },
       { id: 'activity', label: 'Activity Feed', icon: Radio, count: activity.length },
+      { id: 'deletion-requests', label: 'Deletion Requests', icon: FileWarning, count: deletionRequests.length },
     ] : [])
   ];
 
@@ -396,6 +401,61 @@ export default function AdminDashboard() {
                 </div>
               ))}
             </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* ═══════════ DELETION REQUESTS TAB ═══════════ */}
+      {activeSection === 'deletion-requests' && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+          <div className="glass-panel overflow-hidden">
+            <div className="p-4 md:p-6 border-b border-white/10 flex items-center justify-between bg-red-500/5">
+              <h3 className="text-lg md:text-xl font-semibold text-white flex items-center gap-2">
+                <FileWarning size={20} className="text-red-400" /> Pending Deletions
+              </h3>
+              <span className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 px-3 py-1 rounded-full font-bold">
+                {deletionRequests.length} Requires Action
+              </span>
+            </div>
+
+            {deletionRequests.length === 0 ? (
+              <div className="p-8 text-center text-gray-400">
+                <ShieldAlert size={48} className="mx-auto text-gray-600 mb-4 opacity-50" />
+                <p className="text-lg">No pending deletion requests.</p>
+                <p className="text-sm mt-1">Your compliance queue is clear!</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-white/5 max-h-[600px] overflow-y-auto">
+                {deletionRequests.map((req) => (
+                  <div key={req.scan_id} className="px-4 md:px-6 py-4 hover:bg-white/[0.02] transition-colors flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div className="flex items-start gap-3">
+                      <div className="mt-1 p-2 rounded-lg bg-red-500/10">
+                        <FileWarning size={20} className="text-red-400" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-white font-medium">{req.full_name || 'Anonymous'}</span>
+                          <span className="px-2 py-0.5 rounded text-[10px] bg-red-500/20 text-red-400 font-bold uppercase">Requested Deletion</span>
+                        </div>
+                        <p className="text-gray-400 text-sm">{req.email}</p>
+                        <div className="flex items-center gap-3 mt-2 text-[11px] text-gray-500">
+                          <span className="flex items-center gap-1"><Clock size={12} /> Requested: {formatDate(req.requested_at)}</span>
+                          <span>•</span>
+                          <span>Joined: {formatDate(req.created_at)}</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <button 
+                      onClick={() => handleDeleteUser(req.user_id)} 
+                      className="w-full md:w-auto flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 px-4 py-2 rounded-lg transition-colors font-semibold text-sm"
+                    >
+                      <Trash2 size={16} /> Approve & Delete Data
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </motion.div>
       )}

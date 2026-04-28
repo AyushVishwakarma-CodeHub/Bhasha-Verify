@@ -171,4 +171,21 @@ class MessageModel {
         $stmt = $this->pdo->query($sql);
         return $stmt->fetchAll();
     }
+
+    /**
+     * Returns pending account deletion requests
+     */
+    public function getDeletionRequests() {
+        if (!$this->pdo) return [];
+
+        $sql = "SELECT s.id as scan_id, s.scanned_at as requested_at, 
+                       u.id as user_id, u.full_name, u.email, u.created_at
+                FROM scans s
+                INNER JOIN users u ON s.user_id = u.id
+                WHERE s.original_message LIKE 'SYSTEM ALERT: USER REQUESTED ACCOUNT DELETION%'
+                ORDER BY s.scanned_at DESC";
+
+        $stmt = $this->pdo->query($sql);
+        return $stmt->fetchAll();
+    }
 }
