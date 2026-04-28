@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid } from 'recharts';
-import { ArrowLeft, ShieldAlert, Activity, Database, Smartphone, Users, Radio, Mail, Clock, Mic, MessageSquareText } from 'lucide-react';
+import { ArrowLeft, ShieldAlert, Activity, Database, Smartphone, Users, Radio, Mail, Clock, Mic, MessageSquareText, Trash2 } from 'lucide-react';
 import axios from 'axios';
 
 const API = 'https://bhasha-verify.onrender.com';
@@ -49,6 +49,34 @@ export default function AdminDashboard() {
     };
     fetchAll();
   }, []);
+
+  const handleRequestDeletion = async () => {
+    if (!window.confirm("Are you sure you want to request account deletion? Your data will be removed within 72 hours.")) return;
+    try {
+      const res = await axios.post(`${API}/api/user/request-delete`, {
+        user_id: authUser.id,
+        email: authUser.email
+      });
+      alert(res.data.message);
+    } catch (err) {
+      alert("Failed to submit request.");
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm("WARNING: This will permanently delete the user and all their scan history. Proceed?")) return;
+    try {
+      const res = await axios.post(`${API}/api/admin/delete-user`, {
+        admin_email: authUser.email,
+        user_id: userId
+      });
+      if (res.data.success) {
+        setUsers(users.filter(u => u.id !== userId));
+      }
+    } catch (err) {
+      alert("Failed to delete user.");
+    }
+  };
 
   if (loading) {
     return (
@@ -232,6 +260,15 @@ export default function AdminDashboard() {
               </ResponsiveContainer>
             </div>
           </motion.div>
+
+          {/* User Deletion Request */}
+          {!isAdmin && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }} className="mt-8 flex justify-center">
+              <button onClick={handleRequestDeletion} className="flex items-center gap-2 text-red-400 hover:text-red-300 border border-red-500/30 hover:bg-red-500/10 px-6 py-3 rounded-lg text-sm font-semibold transition-colors">
+                <Trash2 size={16} /> Request Account Deletion
+              </button>
+            </motion.div>
+          )}
         </motion.div>
       )}
 
@@ -257,6 +294,7 @@ export default function AdminDashboard() {
                     <th className="px-6 py-4">Joined</th>
                     <th className="px-6 py-4">Scans</th>
                     <th className="px-6 py-4">Last Active</th>
+                    <th className="px-6 py-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -277,6 +315,11 @@ export default function AdminDashboard() {
                         <span className="bg-white/10 text-white text-xs font-bold px-2.5 py-1 rounded-full">{user.scan_count}</span>
                       </td>
                       <td className="px-6 py-4 text-gray-500 text-sm">{user.last_active ? formatDate(user.last_active) : 'Never'}</td>
+                      <td className="px-6 py-4 text-right">
+                        <button onClick={() => handleDeleteUser(user.id)} className="text-gray-500 hover:text-red-400 transition-colors p-2 rounded-full hover:bg-red-500/10" title="Delete User">
+                          <Trash2 size={16} />
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -297,9 +340,14 @@ export default function AdminDashboard() {
                     </div>
                     <span className="ml-auto bg-white/10 text-white text-xs font-bold px-2 py-1 rounded-full shrink-0">{user.scan_count} scans</span>
                   </div>
-                  <div className="flex justify-between text-[11px] text-gray-600">
-                    <span>Joined {formatDate(user.created_at)}</span>
-                    <span>Last active: {user.last_active ? formatDate(user.last_active) : 'Never'}</span>
+                  <div className="flex justify-between items-center text-[11px] text-gray-600">
+                    <div>
+                      <span>Joined {formatDate(user.created_at)}</span><br/>
+                      <span>Last active: {user.last_active ? formatDate(user.last_active) : 'Never'}</span>
+                    </div>
+                    <button onClick={() => handleDeleteUser(user.id)} className="text-gray-500 hover:text-red-400 p-2 border border-white/5 rounded-lg">
+                      <Trash2 size={14} />
+                    </button>
                   </div>
                 </div>
               ))}

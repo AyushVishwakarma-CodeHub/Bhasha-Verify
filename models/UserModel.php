@@ -127,4 +127,30 @@ class UserModel {
             return ['error' => 'Failed to seamlessly register Google User: ' . $e->getMessage()];
         }
     }
+
+    /**
+     * Delete a user and all their associated scan data
+     */
+    public function deleteUserAndData($userId) {
+        if (!$this->pdo) return ['error' => 'Database connection failed'];
+
+        try {
+            $this->pdo->beginTransaction();
+
+            // Delete all scan history for this user
+            $stmt = $this->pdo->prepare("DELETE FROM scanned_messages WHERE user_id = ?");
+            $stmt->execute([(int)$userId]);
+
+            // Delete the user record
+            $stmt = $this->pdo->prepare("DELETE FROM users WHERE id = ?");
+            $stmt->execute([(int)$userId]);
+
+            $this->pdo->commit();
+
+            return ['success' => true, 'message' => 'User and all associated data deleted successfully.'];
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            return ['error' => 'Failed to delete user: ' . $e->getMessage()];
+        }
+    }
 }

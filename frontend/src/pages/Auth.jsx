@@ -8,6 +8,7 @@ import axios from 'axios';
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({ full_name: '', email: '', password: '' });
+  const [consent, setConsent] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -23,6 +24,10 @@ export default function Auth() {
   };
 
   const handleGoogleSuccess = async (credentialResponse) => {
+    if (!isLogin && !consent) {
+      setError("You must agree to the Terms of Service & Privacy Policy to register.");
+      return;
+    }
     setLoading(true);
     setError('');
     try {
@@ -49,6 +54,10 @@ export default function Auth() {
 
     // Add validation for Registration
     if (!isLogin) {
+      if (!consent) {
+        return setError("You must agree to the Terms of Service & Privacy Policy to register.");
+      }
+
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(formData.email)) {
         return setError("Please enter a valid email address with a domain (e.g., name@example.com).");
@@ -283,6 +292,17 @@ export default function Auth() {
                 />
               </div>
             </div>
+
+            <AnimatePresence mode="wait">
+              {!isLogin && (
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="flex items-start gap-2 mt-2">
+                  <input type="checkbox" id="consent" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-1 bg-black border-gray-700 rounded text-neon-green focus:ring-neon-green focus:ring-offset-gray-900" />
+                  <label htmlFor="consent" className="text-xs text-gray-400 leading-tight">
+                    I agree to the <a href="/terms" target="_blank" className="text-neon-green hover:underline">Terms of Service</a> and acknowledge the <a href="/privacy" target="_blank" className="text-neon-green hover:underline">Privacy Policy</a>.
+                  </label>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {error && (
               <div className="text-red-400 p-2.5 md:p-3 rounded text-xs md:text-sm text-center bg-red-500/10 border border-red-500/50">

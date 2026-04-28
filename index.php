@@ -344,5 +344,54 @@ if ($path === '/api/auth/google' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     exit();
 }
 
+// ─── Route 9: Admin — Delete User & Data (PROTECTED) ──────
+if ($path === '/api/admin/delete-user' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $input = json_decode(file_get_contents('php://input'), true);
+    
+    if (empty($input['admin_email']) || empty($input['user_id'])) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Admin email and user_id are required.']);
+        exit();
+    }
+    
+    // Verify admin
+    if (!in_array(strtolower(trim($input['admin_email'])), $ADMIN_EMAILS)) {
+        http_response_code(403);
+        echo json_encode(['error' => 'Access denied. Admin only.']);
+        exit();
+    }
+    
+    $userModel = new UserModel();
+    $result = $userModel->deleteUserAndData($input['user_id']);
+    
+    header('Content-Type: application/json');
+    if (isset($result['error'])) {
+        http_response_code(500);
+    }
+    echo json_encode($result);
+    exit();
+}
+
+// ─── Route 10: User — Request Account Deletion ────────────
+if ($path === '/api/user/request-delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $input = json_decode(file_get_contents('php://input'), true);
+    
+    if (empty($input['user_id']) || empty($input['email'])) {
+        http_response_code(400);
+        echo json_encode(['error' => 'User ID and email are required.']);
+        exit();
+    }
+    
+    // Log the deletion request (admin can review these)
+    error_log("DELETION REQUEST: User ID=" . $input['user_id'] . ", Email=" . $input['email'] . ", Time=" . date('Y-m-d H:i:s'));
+    
+    header('Content-Type: application/json');
+    echo json_encode([
+        'success' => true,
+        'message' => 'Your account deletion request has been submitted. Your data will be removed within 72 hours.'
+    ]);
+    exit();
+}
+
 http_response_code(404);
 echo json_encode(['error' => 'API route not found']);

@@ -6,6 +6,8 @@ import AdminDashboard from './pages/AdminDashboard';
 import Auth from './pages/Auth';
 import Landing from './pages/Landing';
 import DeveloperInfo from './pages/DeveloperInfo';
+import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
 import ProtectedRoute from './components/ProtectedRoute';
 import WhatsAppFAB from './components/WhatsAppFAB';
 
@@ -22,6 +24,8 @@ function App() {
             <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/developer" element={<DeveloperInfo />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
             
             <Route element={<ProtectedRoute />}>
               <Route path="/scanner" element={<Home />} />
